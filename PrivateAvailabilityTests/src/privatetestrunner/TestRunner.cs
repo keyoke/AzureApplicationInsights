@@ -26,6 +26,7 @@ namespace privatetestrunner
  
         public async Task Run()
         {
+            // Implementation based on - https://docs.microsoft.com/en-us/azure/azure-monitor/app/availability-azure-functions
             TestRunOptions options = new();
             _config.GetSection(nameof(TestRunOptions.TestRun))
                     .Bind(options);

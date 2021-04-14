@@ -14,7 +14,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-// based on https://docs.microsoft.com/en-us/azure/azure-monitor/app/availability-azure-functions
 namespace privatetestrunner
 {
     class Program
