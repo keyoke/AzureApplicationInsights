@@ -56,7 +56,7 @@ namespace privatetestrunner
                 {
                     // Run Simple Ping test
                     availability.Success = await RunUrlPingTest(pingTest.Url, pingTest.StatusCode, TimeSpan.FromSeconds(pingTest.Timeout), pingTest.ParseDependentRequests);
-                    // Or Multi-step WebTest
+                    // example of Multi-step WebTest
                     // availability.Success = await RunMultiStepWebTest();
 
                      _logger.LogInformation($"{DateTime.Now} - Successfully executed request.");
@@ -96,7 +96,7 @@ namespace privatetestrunner
 
         private async Task<Boolean> RunUrlPingTest(string url, HttpStatusCode statusCode, TimeSpan requestTimeout, Boolean parseDependentRequests = false)
         {
-            var client = _httpFactory.CreateClient();
+            var client = _httpFactory.CreateClient("test-client");
             HttpResponseMessage response;
 
             // HTTP Request timeout
@@ -118,7 +118,7 @@ namespace privatetestrunner
 
         private async Task<Boolean> RunMultiStepWebTest()
         {
-            var client = _httpFactory.CreateClient();
+            var client = _httpFactory.CreateClient("test-client");
             throw new NotImplementedException("Implement RunMultiStepWebTest!");
         }
 

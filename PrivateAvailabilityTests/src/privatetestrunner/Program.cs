@@ -13,6 +13,8 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Polly;
+using Polly.Extensions.Http;
 
 namespace privatetestrunner
 {
@@ -50,8 +52,16 @@ namespace privatetestrunner
 
             })
             .ConfigureServices((HostBuilderContext, services) => {
-                services.AddHttpClient();
+                services.AddHttpClient("test-client")
+                        .AddPolicyHandler(GetRetryPolicy());
                 services.AddTransient<TestRunner>();
             });
+
+            static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+            {
+                return HttpPolicyExtensions
+                            .HandleTransientHttpError()
+                            .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(20));
+            }
     }
 }
