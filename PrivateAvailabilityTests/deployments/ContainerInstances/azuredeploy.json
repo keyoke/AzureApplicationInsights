@@ -1,0 +1,95 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "name": {
+            "type": "string"
+        },
+         "image": {
+            "type": "string"
+        },
+        "default-tags": {
+            "type": "object",
+            "defaultValue": "",
+            "metadata": {
+              "description": "default-tags"
+            }
+          },
+        "vnet-name": {
+            "type": "string"
+        },
+        "subnet-name": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "container-instance-memory": 3.5,
+        "container-instance-num-cpus": 2,
+        "container-network-profile-name": "[concat('aci-network-profile-', parameters('vnet-name'), '-', parameters('subnet-name'))]",
+        "container-subnet-resourceId": "[resourceId(resourcegroup().name,'Microsoft.Network/virtualNetworks/subnets', parameters('vnet-name'), parameters('subnet-name'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/networkProfiles",
+            "apiVersion": "2020-07-01",
+            "name": "[variables('container-network-profile-name')]",
+            "location": "[resourceGroup().location]",
+            "tags": "[parameters('default-tags')]",
+            "properties": {
+                "containerNetworkInterfaceConfigurations": [
+                    {
+                        "name": "eth0",
+                        "properties": {
+                            "ipConfigurations": [
+                                {
+                                    "name": "ipconfigprofile",
+                                    "properties": {
+                                        "subnet": {
+                                            "id": "[variables('container-subnet-resourceId')]"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.ContainerInstance/containerGroups",
+            "apiVersion": "2019-12-01",
+            "name": "[parameters('name')]",
+            "tags": "[parameters('default-tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkProfiles', variables('container-network-profile-name'))]"
+              ],
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "containers": [
+                    {
+                        "name": "[parameters('name')]",
+                        "properties": {
+                            "image": "[ parameters('image')]",
+                            "ports": [
+                            ],
+                            "environmentVariables": [
+
+                            ],
+                            "resources": {
+                                "requests": {
+                                    "memoryInGB": "[variables('container-instance-memory')]",
+                                    "cpu": "[variables('container-instance-num-cpus')]"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "restartPolicy": "Never",
+                "networkProfile": {
+                    "Id": "[resourceId('Microsoft.Network/networkProfiles', variables('container-network-profile-name'))]"
+                  },
+                "osType": "Linux"
+            }
+        }
+    ]
+}
