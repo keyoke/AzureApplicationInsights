@@ -5,14 +5,23 @@
     "name": {
       "value": "privatetestrunner"
     },
-    "image": {
-      "value": "myregistry.azurecr.io/privatetestrunner:latest"
+    "docker-server": {
+      "value": "myregistry.azurecr.io"
+    },
+    "docker-image": {
+      "value": "myregistry.azurecr.io/privatetestrunner:7"
+    },
+    "docker-username": {
+        "value": "myregistry"
+    },
+    "docker-password": {
+        "value": "mypasswordassword"
     },
     "vnet-name": {
-        "value": "my-vnet"
+        "value": "myvnet"
     },
     "subnet-name": {
-        "value": "my-subnet"
+        "value": "mysubnet"
     }
   }
 }
