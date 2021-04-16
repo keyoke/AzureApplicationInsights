@@ -5,12 +5,23 @@
         "name": {
             "type": "string"
         },
-         "image": {
+        "docker-server": {
+            "type": "string"
+        },
+        "docker-image": {
+            "type": "string"
+        },
+        "docker-username": {
+            "type": "string"
+        },
+        "docker-password": {
             "type": "string"
         },
         "default-tags": {
             "type": "object",
-            "defaultValue": "",
+            "defaultValue": {
+                
+            },
             "metadata": {
               "description": "default-tags"
             }
@@ -21,6 +32,7 @@
         "subnet-name": {
             "type": "string"
         }
+
     },
     "variables": {
         "container-instance-memory": 3.5,
@@ -69,7 +81,7 @@
                     {
                         "name": "[parameters('name')]",
                         "properties": {
-                            "image": "[ parameters('image')]",
+                            "image": "[ parameters('docker-image')]",
                             "ports": [
                             ],
                             "environmentVariables": [
@@ -83,6 +95,13 @@
                             }
                         }
                     }
+                ],
+                "imageRegistryCredentials": [
+                  {
+                    "server": "[ parameters('docker-server')]",
+                    "username": "[ parameters('docker-username')]",
+                    "password": "[ parameters('docker-password')]"
+                  }
                 ],
                 "restartPolicy": "Never",
                 "networkProfile": {
