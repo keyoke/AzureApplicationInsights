@@ -33,7 +33,7 @@ namespace privatetestrunner
 
                 try
                 {
-                    var testRunnerService = services.GetRequiredService<TestRunner>();
+                    var testRunnerService = services.GetRequiredService<UrlPingTestRunner>();
                     await testRunnerService.Run();
                 }
                 catch (Exception ex)
@@ -54,7 +54,7 @@ namespace privatetestrunner
             .ConfigureServices((HostBuilderContext, services) => {
                 services.AddHttpClient("test-client")
                         .AddPolicyHandler(GetRetryPolicy());
-                services.AddTransient<TestRunner>();
+                services.AddTransient<UrlPingTestRunner>();
             });
 
             static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()

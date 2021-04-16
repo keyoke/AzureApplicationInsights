@@ -9,15 +9,16 @@ using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using privatetestrunner.interfaces;
 
 namespace privatetestrunner
 {
-    public class TestRunner
+    public class UrlPingTestRunner : ITestRunner
     {
         private readonly ILogger _logger;
         private readonly IConfiguration _config;
         private IHttpClientFactory _httpFactory { get; set; }
-        public TestRunner(ILogger<TestRunner> logger,IConfiguration config, IHttpClientFactory httpFactory)
+        public UrlPingTestRunner(ILogger<UrlPingTestRunner> logger,IConfiguration config, IHttpClientFactory httpFactory)
         {
             _logger = logger;
             _config = config;
@@ -56,8 +57,6 @@ namespace privatetestrunner
                 {
                     // Run Simple Ping test
                     availability.Success = await RunUrlPingTest(pingTest.Url, pingTest.StatusCode, TimeSpan.FromSeconds(pingTest.Timeout), pingTest.ParseDependentRequests);
-                    // example of Multi-step WebTest
-                    // availability.Success = await RunMultiStepWebTest();
 
                      _logger.LogInformation($"{DateTime.Now} - Successfully executed request.");
                 }
@@ -115,12 +114,5 @@ namespace privatetestrunner
             
             return (response.StatusCode == statusCode);
         }
-
-        private async Task<Boolean> RunMultiStepWebTest()
-        {
-            var client = _httpFactory.CreateClient("test-client");
-            throw new NotImplementedException("Implement RunMultiStepWebTest!");
-        }
-
     }
 }
