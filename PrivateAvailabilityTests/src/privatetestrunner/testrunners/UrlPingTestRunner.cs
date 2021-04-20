@@ -10,8 +10,9 @@ using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using privatetestrunner.interfaces;
+using privatetestrunner.options;
 
-namespace privatetestrunner
+namespace privatetestrunner.testrunners
 {
     public class UrlPingTestRunner : ITestRunner
     {
