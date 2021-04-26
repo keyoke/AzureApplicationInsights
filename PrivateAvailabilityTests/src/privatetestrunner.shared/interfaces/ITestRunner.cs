@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace privatetestrunner.interfaces
+namespace privatetestrunner.shared.interfaces
 {
     public interface ITestRunner
     {

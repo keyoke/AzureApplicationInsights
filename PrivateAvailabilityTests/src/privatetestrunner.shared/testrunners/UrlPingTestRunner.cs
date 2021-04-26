@@ -9,10 +9,10 @@ using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using privatetestrunner.interfaces;
-using privatetestrunner.options;
+using privatetestrunner.shared.interfaces;
+using privatetestrunner.shared.options;
 
-namespace privatetestrunner.testrunners
+namespace privatetestrunner.shared.testrunners
 {
     public class UrlPingTestRunner : ITestRunner
     {
@@ -29,7 +29,7 @@ namespace privatetestrunner.testrunners
         public async Task Run()
         {
             // Implementation based on - https://docs.microsoft.com/en-us/azure/azure-monitor/app/availability-azure-functions
-            TestRunOptions options = new();
+            TestRunOptions options = new TestRunOptions();
             _config.GetSection(nameof(TestRunOptions.TestRun))
                     .Bind(options);
 

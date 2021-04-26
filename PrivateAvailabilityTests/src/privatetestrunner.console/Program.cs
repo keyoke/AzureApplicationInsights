@@ -1,21 +1,11 @@
 ﻿using System;
-using System.IO;
-using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System.Diagnostics;
-using System.Configuration;
-using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.Channel;
-using Microsoft.ApplicationInsights.DataContracts;
-using Microsoft.ApplicationInsights.Extensibility;
-using System.Collections.Generic;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using Polly.Extensions.Http;
-using privatetestrunner.testrunners;
+using privatetestrunner.shared.testrunners;
 
 namespace privatetestrunner
 {

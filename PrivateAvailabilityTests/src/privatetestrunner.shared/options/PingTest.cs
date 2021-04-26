@@ -1,8 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Net;
 
-namespace privatetestrunner.options
+namespace privatetestrunner.shared.options
 {
     public class PingTest
     {
