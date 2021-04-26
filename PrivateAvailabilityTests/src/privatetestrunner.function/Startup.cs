@@ -8,6 +8,7 @@ using System.Net.Http;
 using System;
 using Microsoft.Extensions.Configuration;
 using System.IO;
+using privatetestrunner.shared.options;
 
 [assembly: FunctionsStartup(typeof(privatetestrunner.function.Startup))]
 
@@ -17,6 +18,14 @@ namespace privatetestrunner.function
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
+
+            builder.Services
+                .AddOptions<TestRunOptions>()
+                .Configure<IConfiguration>((settings, configuration) =>
+                {
+                    configuration.GetSection(TestRunOptions.TestRun).Bind(settings);
+                });
+
             builder.Services
                 .AddHttpClient("test-client"); //.AddPolicyHandler(GetRetryPolicy());
 

@@ -17,26 +17,23 @@ namespace privatetestrunner.shared.testrunners
     public class UrlPingTestRunner : ITestRunner
     {
         private readonly ILogger _logger;
-        private readonly IConfiguration _config;
+        private readonly TestRunOptions _options;
         private IHttpClientFactory _httpFactory { get; set; }
-        public UrlPingTestRunner(ILogger<UrlPingTestRunner> logger,IConfiguration config, IHttpClientFactory httpFactory)
+        public UrlPingTestRunner(ILogger<UrlPingTestRunner> logger, TestRunOptions options, IHttpClientFactory httpFactory)
         {
             _logger = logger;
-            _config = config;
+            _options = options;
             _httpFactory = httpFactory;
         }
  
         public async Task Run()
         {
             // Implementation based on - https://docs.microsoft.com/en-us/azure/azure-monitor/app/availability-azure-functions
-            TestRunOptions options = new TestRunOptions();
-            _config.GetSection(nameof(TestRunOptions.TestRun))
-                    .Bind(options);
 
-            TelemetryConfiguration telemetryConfiguration = new TelemetryConfiguration(options.InstrumentationKey, new InMemoryChannel { EndpointAddress = options.EndpointAddress });
+            TelemetryConfiguration telemetryConfiguration = new TelemetryConfiguration(this._options.InstrumentationKey, new InMemoryChannel { EndpointAddress = this._options.EndpointAddress });
             TelemetryClient telemetryClient = new TelemetryClient(telemetryConfiguration);
 
-             foreach (var pingTest in options.PingTests)
+             foreach (var pingTest in this._options.PingTests)
             {
                 _logger.LogInformation($"{DateTime.Now} - Executing availability test run for '{pingTest.Name}'.");
 
@@ -46,7 +43,7 @@ namespace privatetestrunner.shared.testrunners
                 {
                     Id = operationId,
                     Name = pingTest.Name,
-                    RunLocation = options.Location,
+                    RunLocation = this._options.Location,
                     Success = false
                 };
 
@@ -69,7 +66,7 @@ namespace privatetestrunner.shared.testrunners
                     exceptionTelemetry.Context.Operation.Id = operationId;
                     exceptionTelemetry.Properties.Add("TestName", pingTest.Name);
                     exceptionTelemetry.Properties.Add("TestTarget", pingTest.Url);
-                    exceptionTelemetry.Properties.Add("TestLocation", options.Location);
+                    exceptionTelemetry.Properties.Add("TestLocation", this._options.Location);
                     telemetryClient.TrackException(exceptionTelemetry);
 
                      _logger.LogInformation($"{DateTime.Now} - Failed executing request.");

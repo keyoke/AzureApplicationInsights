@@ -16,7 +16,7 @@ namespace privatetestrunner.function
             this.testRunnerService = testRunnerService;
         }
 
-        [FunctionName("TestRuns")]
+        [FunctionName("UrlPingTesRuns")]
         public async Task Run([TimerTrigger("*/15 * * * *")]TimerInfo myTimer, ILogger log)
         {
             try

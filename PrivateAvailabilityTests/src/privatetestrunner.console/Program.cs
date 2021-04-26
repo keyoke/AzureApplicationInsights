@@ -6,6 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using Polly.Extensions.Http;
 using privatetestrunner.shared.testrunners;
+using privatetestrunner.shared.options;
+using Microsoft.Extensions.Configuration;
 
 namespace privatetestrunner
 {
@@ -43,6 +45,12 @@ namespace privatetestrunner
 
             })
             .ConfigureServices((HostBuilderContext, services) => {
+
+                services.AddOptions<TestRunOptions>()
+                .Configure<IConfiguration>((settings, configuration) =>
+                {
+                    configuration.GetSection(TestRunOptions.TestRun).Bind(settings);
+                });
                 services.AddHttpClient("test-client")
                         .AddPolicyHandler(GetRetryPolicy());
                 services.AddTransient<UrlPingTestRunner>();
