@@ -26,9 +26,6 @@ namespace privatetestrunner.function
                     configuration.GetSection(TestRunOptions.TestRun).Bind(settings);
                 });
 
-            //builder.Services.AddOptions<TestRunOptions>()
-            //                            .Bind(builder.GetContext().Configuration.GetSection(TestRunOptions.TestRun));
-
             builder.Services
                 .AddHttpClient("test-client"); //.AddPolicyHandler(GetRetryPolicy());
 
@@ -41,6 +38,7 @@ namespace privatetestrunner.function
 
             builder.ConfigurationBuilder
                 .AddJsonFile(Path.Combine(context.ApplicationRootPath,"appsettings.json"), optional: true, reloadOnChange: false)
+                .AddJsonFile(Path.Combine(context.ApplicationRootPath, $"appsettings.{ context.EnvironmentName}.json"), optional: true, reloadOnChange: false)
                 .AddEnvironmentVariables();
         }
 

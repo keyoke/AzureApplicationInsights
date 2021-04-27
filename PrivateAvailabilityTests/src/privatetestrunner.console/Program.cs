@@ -17,14 +17,8 @@ namespace privatetestrunner
 
         async static Task Main(string[] args)
         {
-            var builder = new HostBuilder()
+            var builder = Host.CreateDefaultBuilder(args)
                                 .UseConsoleLifetime()
-                                .ConfigureAppConfiguration((context, builder) =>
-                                {
-                                    builder.AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
-                                    builder.AddEnvironmentVariables();
-
-                                })
                                 .ConfigureServices((context, services) => {
                                     services.AddOptions<TestRunOptions>()
                                         .Bind(context.Configuration.GetSection(TestRunOptions.TestRun));
