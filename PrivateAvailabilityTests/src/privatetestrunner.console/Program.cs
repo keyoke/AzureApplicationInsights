@@ -8,17 +8,33 @@ using Polly.Extensions.Http;
 using privatetestrunner.shared.testrunners;
 using privatetestrunner.shared.options;
 using Microsoft.Extensions.Configuration;
+using System.IO;
 
 namespace privatetestrunner
 {
     class Program
-    {              
+    {
 
         async static Task Main(string[] args)
-        {      
-            using IHost host = CreateHostBuilder(args)
+        {
+            var builder = new HostBuilder()
                                 .UseConsoleLifetime()
-                                .Build();
+                                .ConfigureAppConfiguration((context, builder) =>
+                                {
+                                    builder.AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
+                                    builder.AddEnvironmentVariables();
+
+                                })
+                                .ConfigureServices((context, services) => {
+                                    services.AddOptions<TestRunOptions>()
+                                        .Bind(context.Configuration.GetSection(TestRunOptions.TestRun));
+
+                                    services.AddHttpClient("test-client")
+                                            .AddPolicyHandler(GetRetryPolicy());
+                                    services.AddTransient<UrlPingTestRunner>();
+                                });
+
+            var host = builder.Build();
 
             using (var serviceScope = host.Services.CreateScope())
             {
@@ -31,7 +47,7 @@ namespace privatetestrunner
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Error Occured");
+                    Console.WriteLine($"Error Occured - '{ex}'");
                 }
             }
 
@@ -39,28 +55,11 @@ namespace privatetestrunner
 
         }
 
-         static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-            .ConfigureAppConfiguration((HostingAbstractionsHostExtensions, configuration) => {  
-
-            })
-            .ConfigureServices((HostBuilderContext, services) => {
-
-                services.AddOptions<TestRunOptions>()
-                .Configure<IConfiguration>((settings, configuration) =>
-                {
-                    configuration.GetSection(TestRunOptions.TestRun).Bind(settings);
-                });
-                services.AddHttpClient("test-client")
-                        .AddPolicyHandler(GetRetryPolicy());
-                services.AddTransient<UrlPingTestRunner>();
-            });
-
-            static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
-            {
-                return HttpPolicyExtensions
-                            .HandleTransientHttpError()
-                            .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(20));
-            }
+        static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+        {
+            return HttpPolicyExtensions
+                        .HandleTransientHttpError()
+                        .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(20));
+        }
     }
 }

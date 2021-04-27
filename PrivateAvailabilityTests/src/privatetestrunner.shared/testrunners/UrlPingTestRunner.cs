@@ -9,6 +9,7 @@ using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using privatetestrunner.shared.interfaces;
 using privatetestrunner.shared.options;
 
@@ -17,23 +18,36 @@ namespace privatetestrunner.shared.testrunners
     public class UrlPingTestRunner : ITestRunner
     {
         private readonly ILogger _logger;
-        private readonly TestRunOptions _options;
+        private readonly IOptions<TestRunOptions> _config;
         private IHttpClientFactory _httpFactory { get; set; }
-        public UrlPingTestRunner(ILogger<UrlPingTestRunner> logger, TestRunOptions options, IHttpClientFactory httpFactory)
+        public UrlPingTestRunner(ILogger<UrlPingTestRunner> logger, IOptions<TestRunOptions> config, IHttpClientFactory httpFactory)
         {
             _logger = logger;
-            _options = options;
+            _config = config;
+            try
+            {
+                TestRunOptions options = _config.Value;
+            }
+            catch (OptionsValidationException ex)
+            {
+                foreach (string failure in ex.Failures)
+                {
+                    _logger.LogError(failure);
+                }
+            }
+
             _httpFactory = httpFactory;
         }
  
         public async Task Run()
         {
             // Implementation based on - https://docs.microsoft.com/en-us/azure/azure-monitor/app/availability-azure-functions
+            var options = _config.Value;
 
-            TelemetryConfiguration telemetryConfiguration = new TelemetryConfiguration(this._options.InstrumentationKey, new InMemoryChannel { EndpointAddress = this._options.EndpointAddress });
+            TelemetryConfiguration telemetryConfiguration = new TelemetryConfiguration(options.InstrumentationKey, new InMemoryChannel { EndpointAddress = options.EndpointAddress });
             TelemetryClient telemetryClient = new TelemetryClient(telemetryConfiguration);
 
-             foreach (var pingTest in this._options.PingTests)
+             foreach (var pingTest in options.PingTests)
             {
                 _logger.LogInformation($"{DateTime.Now} - Executing availability test run for '{pingTest.Name}'.");
 
@@ -43,7 +57,7 @@ namespace privatetestrunner.shared.testrunners
                 {
                     Id = operationId,
                     Name = pingTest.Name,
-                    RunLocation = this._options.Location,
+                    RunLocation = options.Location,
                     Success = false
                 };
 
@@ -66,7 +80,7 @@ namespace privatetestrunner.shared.testrunners
                     exceptionTelemetry.Context.Operation.Id = operationId;
                     exceptionTelemetry.Properties.Add("TestName", pingTest.Name);
                     exceptionTelemetry.Properties.Add("TestTarget", pingTest.Url);
-                    exceptionTelemetry.Properties.Add("TestLocation", this._options.Location);
+                    exceptionTelemetry.Properties.Add("TestLocation", options.Location);
                     telemetryClient.TrackException(exceptionTelemetry);
 
                      _logger.LogInformation($"{DateTime.Now} - Failed executing request.");
