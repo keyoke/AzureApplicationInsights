@@ -8,6 +8,7 @@ using System.Net.Http;
 using System;
 using Microsoft.Extensions.Configuration;
 using System.IO;
+using privatetestrunner.shared.testruns;
 using privatetestrunner.shared.options;
 
 [assembly: FunctionsStartup(typeof(privatetestrunner.function.Startup))]
@@ -20,10 +21,10 @@ namespace privatetestrunner.function
         {
 
             builder.Services
-                .AddOptions<TestRunOptions>()
+                .AddOptions<TestRunnerOptions>()
                 .Configure<IConfiguration>((settings, configuration) =>
                 {
-                    configuration.GetSection(TestRunOptions.TestRun).Bind(settings);
+                    configuration.GetSection(TestRunnerOptions.TestRunner).Bind(settings);
                 });
 
             builder.Services

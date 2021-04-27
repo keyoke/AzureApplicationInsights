@@ -6,9 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using Polly.Extensions.Http;
 using privatetestrunner.shared.testrunners;
+using privatetestrunner.shared.testruns;
 using privatetestrunner.shared.options;
-using Microsoft.Extensions.Configuration;
-using System.IO;
 
 namespace privatetestrunner
 {
@@ -20,8 +19,8 @@ namespace privatetestrunner
             var builder = Host.CreateDefaultBuilder(args)
                                 .UseConsoleLifetime()
                                 .ConfigureServices((context, services) => {
-                                    services.AddOptions<TestRunOptions>()
-                                        .Bind(context.Configuration.GetSection(TestRunOptions.TestRun));
+                                    services.AddOptions<TestRunnerOptions>()
+                                        .Bind(context.Configuration.GetSection(TestRunnerOptions.TestRunner));
 
                                     services.AddHttpClient("test-client")
                                             .AddPolicyHandler(GetRetryPolicy());

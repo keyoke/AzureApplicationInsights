@@ -9,6 +9,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "privatetestrunner.console",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "privatetestrunner.function", "privatetestrunner.function\privatetestrunner.function.csproj", "{DA5CE201-170D-4C64-981E-3C7CEC8D037A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E268E3DE-C9FB-423F-A4CD-C4DF5E1639C4}"
+	ProjectSection(SolutionItems) = preProject
+		testruns.json = testruns.json
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

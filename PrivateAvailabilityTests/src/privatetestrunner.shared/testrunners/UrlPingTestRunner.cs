@@ -1,8 +1,12 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
@@ -12,21 +16,23 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using privatetestrunner.shared.interfaces;
 using privatetestrunner.shared.options;
+using privatetestrunner.shared.testruns;
 
 namespace privatetestrunner.shared.testrunners
 {
     public class UrlPingTestRunner : ITestRunner
     {
+        private static readonly JsonSerializerOptions SerializerOptions = new JsonSerializerOptions();
         private readonly ILogger _logger;
-        private readonly IOptions<TestRunOptions> _config;
+        private readonly IOptions<TestRunnerOptions> _config;
         private IHttpClientFactory _httpFactory { get; set; }
-        public UrlPingTestRunner(ILogger<UrlPingTestRunner> logger, IOptions<TestRunOptions> config, IHttpClientFactory httpFactory)
+        public UrlPingTestRunner(ILogger<UrlPingTestRunner> logger, IOptions<TestRunnerOptions> config, IHttpClientFactory httpFactory)
         {
             _logger = logger;
             _config = config;
             try
             {
-                TestRunOptions options = _config.Value;
+                TestRunnerOptions options = _config.Value;
             }
             catch (OptionsValidationException ex)
             {
@@ -43,11 +49,13 @@ namespace privatetestrunner.shared.testrunners
         {
             // Implementation based on - https://docs.microsoft.com/en-us/azure/azure-monitor/app/availability-azure-functions
             var options = _config.Value;
+            // Get the list of Test runs
+            TestRuns testRuns = await getTestRuns(options.AzureStorageConnectionString);
 
             TelemetryConfiguration telemetryConfiguration = new TelemetryConfiguration(options.InstrumentationKey, new InMemoryChannel { EndpointAddress = options.EndpointAddress });
             TelemetryClient telemetryClient = new TelemetryClient(telemetryConfiguration);
 
-             foreach (var pingTest in options.PingTests)
+            foreach (var pingTest in testRuns.PingTests)
             {
                 _logger.LogInformation($"{DateTime.Now} - Executing availability test run for '{pingTest.Name}'.");
 
@@ -64,13 +72,13 @@ namespace privatetestrunner.shared.testrunners
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                 _logger.LogInformation($"{DateTime.Now} - Testing '{pingTest.Url}'.");
+                _logger.LogInformation($"{DateTime.Now} - Testing '{pingTest.Url}'.");
                 try
                 {
                     // Run Simple Ping test
-                    availability.Success = await RunUrlPingTest(pingTest.Url, pingTest.StatusCode, TimeSpan.FromSeconds(pingTest.Timeout), pingTest.ParseDependentRequests);
+                    availability.Success = await RunUrlPingTest(pingTest.Url, (HttpStatusCode)pingTest.StatusCode, TimeSpan.FromSeconds(pingTest.Timeout), pingTest.ParseDependentRequests);
 
-                     _logger.LogInformation($"{DateTime.Now} - Successfully executed request.");
+                    _logger.LogInformation($"{DateTime.Now} - Successfully executed request.");
                 }
                 catch (Exception ex)
                 {
@@ -83,7 +91,7 @@ namespace privatetestrunner.shared.testrunners
                     exceptionTelemetry.Properties.Add("TestLocation", options.Location);
                     telemetryClient.TrackException(exceptionTelemetry);
 
-                     _logger.LogInformation($"{DateTime.Now} - Failed executing request.");
+                    _logger.LogInformation($"{DateTime.Now} - Failed executing request.");
                 }
                 finally
                 {
@@ -97,12 +105,27 @@ namespace privatetestrunner.shared.testrunners
                     // call flush to ensure telemetry is sent
                     telemetryClient.Flush();
 
-                     _logger.LogInformation($"{DateTime.Now} - Test Duration : '{availability.Duration}', TimeStamp: '{availability.Timestamp}'.");
+                    _logger.LogInformation($"{DateTime.Now} - Test Duration : '{availability.Duration}', TimeStamp: '{availability.Timestamp}'.");
                 }
 
-                 _logger.LogInformation($"{DateTime.Now} - Exiting availability test run for '{pingTest.Name}'."); 
+                _logger.LogInformation($"{DateTime.Now} - Exiting availability test run for '{pingTest.Name}'.");
             }
 
+        }
+
+        private async Task<TestRuns> getTestRuns(string AzureStorageConnectionString)
+        {
+            // We need a connection string to a Storage account where the test run data is stored
+            if (String.IsNullOrEmpty(AzureStorageConnectionString))
+                throw new ApplicationException("AzureStorageConnectionString is required.");
+
+            // Download the Test Run Data
+            BlobContainerClient blobContainerClient = new BlobContainerClient(AzureStorageConnectionString, "testruns");
+            BlobClient blobClient = blobContainerClient.GetBlobClient("testruns.json");
+            BlobDownloadInfo blob = await blobClient.DownloadAsync();
+
+            // Deserialize the downloaded JSON
+            return await JsonSerializer.DeserializeAsync<TestRuns>(blob.Content, SerializerOptions);
         }
 
         private async Task<Boolean> RunUrlPingTest(string url, HttpStatusCode statusCode, TimeSpan requestTimeout, Boolean parseDependentRequests = false)

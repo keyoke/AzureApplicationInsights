@@ -1,0 +1,21 @@
+{
+  "PingTests": [
+    {
+      "Name": "container basic avail test",
+      "Url": "http://www.microsoft.com",
+      "StatusCode": 200,
+      "Timeout": 120,
+      "ParseDependentRequests": false,
+      "Locations": [ "West Europe" ]
+    },
+    {
+      "Name": "container basic avail test",
+      "Url": "http://www.bing.com",
+      "StatusCode": 200,
+      "Timeout": 120,
+      "ParseDependentRequests": false,
+      "Locations": [ "North Europe" ]
+    }
+
+  ]
+}
