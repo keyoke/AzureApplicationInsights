@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -55,7 +56,8 @@ namespace privatetestrunner.shared.testrunners
             TelemetryConfiguration telemetryConfiguration = new TelemetryConfiguration(options.InstrumentationKey, new InMemoryChannel { EndpointAddress = options.EndpointAddress });
             TelemetryClient telemetryClient = new TelemetryClient(telemetryConfiguration);
 
-            foreach (var pingTest in testRuns.PingTests)
+            // Obnly run tests for current location
+            foreach (var pingTest in testRuns.PingTests.Where(t => t.Locations.Contains(options.Location)))
             {
                 _logger.LogInformation($"{DateTime.Now} - Executing availability test run for '{pingTest.Name}'.");
 

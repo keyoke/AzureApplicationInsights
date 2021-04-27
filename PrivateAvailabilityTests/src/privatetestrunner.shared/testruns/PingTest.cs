@@ -11,5 +11,7 @@ namespace privatetestrunner.shared.testruns
         public Int32 StatusCode { get; set; }
         public Int32 Timeout { get; set; }
         public Boolean ParseDependentRequests { get; set; }
+        public IList<String> Locations { get; set; }
+
     }
 }
