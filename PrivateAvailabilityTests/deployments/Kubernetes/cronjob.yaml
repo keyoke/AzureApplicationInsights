@@ -1,0 +1,15 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: privatetestrunner
+spec:
+  schedule: "*/15 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: privatetestrunner
+            image: [IMAGE]
+            imagePullPolicy: IfNotPresent
+          restartPolicy: OnFailure
