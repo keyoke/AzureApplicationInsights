@@ -18,6 +18,9 @@ using Microsoft.Extensions.Options;
 using privatetestrunner.shared.interfaces;
 using privatetestrunner.shared.options;
 using privatetestrunner.shared.testruns;
+using Azure.Identity;
+using Azure;
+using Azure.Core;
 
 namespace privatetestrunner.shared.testrunners
 {
@@ -45,13 +48,15 @@ namespace privatetestrunner.shared.testrunners
 
             _httpFactory = httpFactory;
         }
- 
+
         public async Task Run()
         {
             // Implementation based on - https://docs.microsoft.com/en-us/azure/azure-monitor/app/availability-azure-functions
             var options = _config.Value;
+
             // Get the list of Test runs
-            TestRuns testRuns = await getTestRuns(options.AzureStorageConnectionString);
+            TestRuns testRuns = await getTestRuns(options.StorageComtainerEndpoint, options.StorageBlobName);
+
 
             TelemetryConfiguration telemetryConfiguration = new TelemetryConfiguration(options.InstrumentationKey, new InMemoryChannel { EndpointAddress = options.EndpointAddress });
             TelemetryClient telemetryClient = new TelemetryClient(telemetryConfiguration);
@@ -115,19 +120,30 @@ namespace privatetestrunner.shared.testrunners
 
         }
 
-        private async Task<TestRuns> getTestRuns(string AzureStorageConnectionString)
+        private async Task<TestRuns> getTestRuns(string StorageComtainerEndpoint, string blobName)
         {
-            // We need a connection string to a Storage account where the test run data is stored
-            if (String.IsNullOrEmpty(AzureStorageConnectionString))
-                throw new ApplicationException("AzureStorageConnectionString is required.");
-
             // Download the Test Run Data
-            BlobContainerClient blobContainerClient = new BlobContainerClient(AzureStorageConnectionString, "testruns");
-            BlobClient blobClient = blobContainerClient.GetBlobClient("testruns.json");
-            BlobDownloadInfo blob = await blobClient.DownloadAsync();
+            BlobContainerClient blobContainerClient = new BlobContainerClient(new Uri(StorageComtainerEndpoint), new DefaultAzureCredential());
+            BlobClient blobClient = blobContainerClient.GetBlobClient(blobName);
 
-            // Deserialize the downloaded JSON
-            return await JsonSerializer.DeserializeAsync<TestRuns>(blob.Content, SerializerOptions);
+            try
+            {
+                // Check if the supplied container exists
+                await blobContainerClient.ExistsAsync();
+                // Check if the blob exists
+                await blobClient.ExistsAsync();
+
+                // download the blob
+                BlobDownloadInfo blob = await blobClient.DownloadAsync();
+
+                // Deserialize the downloaded JSON
+                return await JsonSerializer.DeserializeAsync<TestRuns>(blob.Content, SerializerOptions);
+            }
+            catch (RequestFailedException ex)
+            {
+                _logger.LogError($"{DateTime.Now} - Failed to load test run data.", ex);
+                throw;
+            }
         }
 
         private async Task<Boolean> RunUrlPingTest(string url, HttpStatusCode statusCode, TimeSpan requestTimeout, Boolean parseDependentRequests = false)
@@ -138,9 +154,9 @@ namespace privatetestrunner.shared.testrunners
             // HTTP Request timeout
             client.Timeout = requestTimeout;
 
-            if(!parseDependentRequests)
+            if (!parseDependentRequests)
             {
-                response =  await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+                response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
             }
             else
             {
@@ -148,7 +164,7 @@ namespace privatetestrunner.shared.testrunners
             }
 
             Console.WriteLine($"{DateTime.Now} - HTTP Response StatusCode : '{response.StatusCode}'.");
-            
+
             return (response.StatusCode == statusCode);
         }
     }

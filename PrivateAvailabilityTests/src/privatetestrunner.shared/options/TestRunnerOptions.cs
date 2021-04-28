@@ -9,6 +9,8 @@ namespace privatetestrunner.shared.options
         public String InstrumentationKey { get; set; }
         public String EndpointAddress { get; set; }
         public String Location { get; set; }
-        public String AzureStorageConnectionString { get; set; }
+        public String StorageComtainerEndpoint { get; set; }
+        public String StorageBlobName { get; set; }
+
     }
 }
