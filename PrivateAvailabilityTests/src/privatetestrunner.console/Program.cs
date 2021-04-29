@@ -8,6 +8,7 @@ using Polly.Extensions.Http;
 using privatetestrunner.shared.testrunners;
 using privatetestrunner.shared.testruns;
 using privatetestrunner.shared.options;
+using System.IO;
 
 namespace privatetestrunner
 {
@@ -29,6 +30,8 @@ namespace privatetestrunner
 
             var host = builder.Build();
 
+            Console.WriteLine(Environment.GetEnvironmentVariable("StorageComtainerEndpoint"));
+
             using (var serviceScope = host.Services.CreateScope())
             {
                 var services = serviceScope.ServiceProvider;
@@ -47,6 +50,7 @@ namespace privatetestrunner
             //await host.WaitForShutdownAsync();
 
         }
+
 
         static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
         {

@@ -55,7 +55,7 @@ namespace privatetestrunner.shared.testrunners
             var options = _config.Value;
 
             // Get the list of Test runs
-            TestRuns testRuns = await getTestRuns(options.StorageComtainerEndpoint, options.StorageBlobName);
+            TestRuns testRuns = await getTestRuns(options.TestRuns,options.StorageComtainerEndpoint, options.StorageBlobName);
 
 
             TelemetryConfiguration telemetryConfiguration = new TelemetryConfiguration(options.InstrumentationKey, new InMemoryChannel { EndpointAddress = options.EndpointAddress });
@@ -120,29 +120,48 @@ namespace privatetestrunner.shared.testrunners
 
         }
 
-        private async Task<TestRuns> getTestRuns(string StorageComtainerEndpoint, string blobName)
+        private async Task<TestRuns> getTestRuns(TestRuns testRuns,string StorageComtainerEndpoint, string blobName)
         {
-            // Download the Test Run Data
-            BlobContainerClient blobContainerClient = new BlobContainerClient(new Uri(StorageComtainerEndpoint), new DefaultAzureCredential());
-            BlobClient blobClient = blobContainerClient.GetBlobClient(blobName);
 
-            try
+            if (testRuns != null && 
+                testRuns.PingTests.Count > 0)
             {
-                // Check if the supplied container exists
-                await blobContainerClient.ExistsAsync();
-                // Check if the blob exists
-                await blobClient.ExistsAsync();
-
-                // download the blob
-                BlobDownloadInfo blob = await blobClient.DownloadAsync();
-
-                // Deserialize the downloaded JSON
-                return await JsonSerializer.DeserializeAsync<TestRuns>(blob.Content, SerializerOptions);
+                _logger.LogInformation($"{DateTime.Now} - Leveraging local test run config.");
+                return testRuns;
             }
-            catch (RequestFailedException ex)
+
+            if (string.IsNullOrEmpty(StorageComtainerEndpoint) ||
+                string.IsNullOrEmpty(blobName))
             {
-                _logger.LogError($"{DateTime.Now} - Failed to load test run data.", ex);
-                throw;
+                _logger.LogError($"{DateTime.Now} - Leveraging remote test run config requires the StorageContainerEndpoint and BlobName configuration to be set.");
+                return new TestRuns();
+            }
+            else
+            {
+                _logger.LogInformation($"{DateTime.Now} - Leveraging remote test run config from Storage Container Endpoint : '{StorageComtainerEndpoint}', BlobName: '{blobName}'.");
+
+                // Download the Test Run Data
+                BlobContainerClient blobContainerClient = new BlobContainerClient(new Uri(StorageComtainerEndpoint), new DefaultAzureCredential());
+                BlobClient blobClient = blobContainerClient.GetBlobClient(blobName);
+
+                try
+                {
+                    // Check if the supplied container exists
+                    await blobContainerClient.ExistsAsync();
+                    // Check if the blob exists
+                    await blobClient.ExistsAsync();
+
+                    // download the blob
+                    BlobDownloadInfo blob = await blobClient.DownloadAsync();
+
+                    // Deserialize the downloaded JSON
+                    return await JsonSerializer.DeserializeAsync<TestRuns>(blob.Content, SerializerOptions);
+                }
+                catch (RequestFailedException ex)
+                {
+                    _logger.LogError($"{DateTime.Now} - Failed to load remote test run data.", ex);
+                    throw;
+                }
             }
         }
 

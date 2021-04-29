@@ -1,3 +1,4 @@
+using privatetestrunner.shared.testruns;
 using System;
 using System.Collections.Generic;
 
@@ -11,6 +12,7 @@ namespace privatetestrunner.shared.options
         public String Location { get; set; }
         public String StorageComtainerEndpoint { get; set; }
         public String StorageBlobName { get; set; }
+        public TestRuns TestRuns { get; set; }
 
     }
 }

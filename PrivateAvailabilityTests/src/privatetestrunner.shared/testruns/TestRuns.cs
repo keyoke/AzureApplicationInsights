@@ -6,6 +6,10 @@ namespace privatetestrunner.shared.testruns
 {
     public class TestRuns
     {
+        public TestRuns() {
+            this.PingTests = new List<PingTest>();
+        }
+
         public IList<PingTest> PingTests { get; set; }
     }
 }
