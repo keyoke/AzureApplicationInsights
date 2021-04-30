@@ -9,6 +9,8 @@ using privatetestrunner.shared.testrunners;
 using privatetestrunner.shared.testruns;
 using privatetestrunner.shared.options;
 using System.IO;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace privatetestrunner
 {
@@ -17,9 +19,16 @@ namespace privatetestrunner
 
         async static Task Main(string[] args)
         {
-            var builder = Host.CreateDefaultBuilder(args)
+            var builder = new HostBuilder() // Host.CreateDefaultBuilder(args)
                                 .UseConsoleLifetime()
+                                 .ConfigureAppConfiguration((hostingContext, config) =>
+                                 {
+                                     config.SetBasePath(hostingContext.HostingEnvironment.ContentRootPath)
+                                        .AddJsonFile("appsettings.json", false, false)
+                                        .AddEnvironmentVariables();
+                                 })
                                 .ConfigureServices((context, services) => {
+                                    services.AddLogging(configure => configure.AddConsole());
                                     services.AddOptions<TestRunnerOptions>()
                                         .Bind(context.Configuration.GetSection(TestRunnerOptions.TestRunner));
 
@@ -29,8 +38,6 @@ namespace privatetestrunner
                                 });
 
             var host = builder.Build();
-
-            Console.WriteLine(Environment.GetEnvironmentVariable("StorageComtainerEndpoint"));
 
             using (var serviceScope = host.Services.CreateScope())
             {

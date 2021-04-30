@@ -10,7 +10,7 @@ namespace privatetestrunner.shared.options
         public String InstrumentationKey { get; set; }
         public String EndpointAddress { get; set; }
         public String Location { get; set; }
-        public String StorageComtainerEndpoint { get; set; }
+        public String StorageContainerEndpoint { get; set; }
         public String StorageBlobName { get; set; }
         public TestRuns TestRuns { get; set; }
 

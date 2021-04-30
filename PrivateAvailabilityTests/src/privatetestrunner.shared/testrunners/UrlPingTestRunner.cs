@@ -55,7 +55,7 @@ namespace privatetestrunner.shared.testrunners
             var options = _config.Value;
 
             // Get the list of Test runs
-            TestRuns testRuns = await getTestRuns(options.TestRuns,options.StorageComtainerEndpoint, options.StorageBlobName);
+            TestRuns testRuns = await getTestRuns(options.TestRuns,options.StorageContainerEndpoint, options.StorageBlobName);
 
 
             TelemetryConfiguration telemetryConfiguration = new TelemetryConfiguration(options.InstrumentationKey, new InMemoryChannel { EndpointAddress = options.EndpointAddress });
@@ -120,7 +120,7 @@ namespace privatetestrunner.shared.testrunners
 
         }
 
-        private async Task<TestRuns> getTestRuns(TestRuns testRuns,string StorageComtainerEndpoint, string blobName)
+        private async Task<TestRuns> getTestRuns(TestRuns testRuns,string storageContainerEndpoint, string storageBlobName)
         {
 
             if (testRuns != null && 
@@ -130,26 +130,26 @@ namespace privatetestrunner.shared.testrunners
                 return testRuns;
             }
 
-            if (string.IsNullOrEmpty(StorageComtainerEndpoint) ||
-                string.IsNullOrEmpty(blobName))
+            if (string.IsNullOrEmpty(storageContainerEndpoint) ||
+                string.IsNullOrEmpty(storageBlobName))
             {
-                _logger.LogError($"{DateTime.Now} - Leveraging remote test run config requires the StorageContainerEndpoint and BlobName configuration to be set.");
+                _logger.LogError($"{DateTime.Now} - Leveraging remote test run config requires the StorageContainerEndpoint and StorageBlobName configuration to be set.");
                 return new TestRuns();
             }
             else
             {
-                _logger.LogInformation($"{DateTime.Now} - Leveraging remote test run config from Storage Container Endpoint : '{StorageComtainerEndpoint}', BlobName: '{blobName}'.");
+                _logger.LogInformation($"{DateTime.Now} - Leveraging remote test run config from Storage Container Endpoint : '{storageContainerEndpoint}', StorageBlobName: '{storageBlobName}'.");
 
                 // Download the Test Run Data
-                BlobContainerClient blobContainerClient = new BlobContainerClient(new Uri(StorageComtainerEndpoint), new DefaultAzureCredential());
-                BlobClient blobClient = blobContainerClient.GetBlobClient(blobName);
+                BlobContainerClient blobContainerClient = new BlobContainerClient(new Uri(storageContainerEndpoint), new DefaultAzureCredential());
+                BlobClient blobClient = blobContainerClient.GetBlobClient(storageBlobName);
 
                 try
                 {
                     // Check if the supplied container exists
-                    await blobContainerClient.ExistsAsync();
+                    // await blobContainerClient.ExistsAsync();
                     // Check if the blob exists
-                    await blobClient.ExistsAsync();
+                    // await blobClient.ExistsAsync();
 
                     // download the blob
                     BlobDownloadInfo blob = await blobClient.DownloadAsync();
