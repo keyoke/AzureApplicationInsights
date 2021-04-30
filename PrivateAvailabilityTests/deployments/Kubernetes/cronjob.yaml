@@ -4,12 +4,29 @@ metadata:
   name: privatetestrunner
 spec:
   schedule: "*/15 * * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
   jobTemplate:
     spec:
       template:
         spec:
           containers:
           - name: privatetestrunner
-            image: [IMAGE]
+            image: docker.io/keyoke/privatetestrunner:0.5
             imagePullPolicy: IfNotPresent
+            env:
+            - name: TestRunner__StorageContainerEndpoint
+              value: https://[ACCOUNT_NAME].blob.core.windows.net/[CONTAINER_NAME]
+            - name: TestRunner__StorageBlobName
+              value: testruns.json
+            - name: TestRunner__InstrumentationKey
+              value: [APP_INSIGHTS_IKEY]
+            - name: TestRunner__Location
+              value: [LOCATION]
+            - name: AZURE_TENANT_ID   # *OPTIONAL* Either Manually provide the Service Principal Credentials or Leverage Managed Identity/Pod Identity
+              value: [AAD_TENANT_ID]
+            - name: AZURE_CLIENT_ID
+              value: [AAD_CLIENT_ID]
+            - name: AZURE_CLIENT_SECRET
+              value: [AAD_CLIENT_SECRET]
           restartPolicy: OnFailure
